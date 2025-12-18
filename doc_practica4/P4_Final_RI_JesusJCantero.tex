@@ -1,0 +1,581 @@
+\documentclass[11pt]{article}
+% ---------------- Paquetes y configuración ----------------
+\usepackage[left=3cm,right=3cm,top=2cm,bottom=2cm,headheight=14pt]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% ----------------------------------------------------------
+\setlength{\parindent}{0mm}
+\pagestyle{fancy}
+\rhead{Recuperación de Información}
+\lhead{P4 - Sistema de RI}
+\renewcommand{\footrulewidth}{0.5pt}
+\fancyfoot[L]{Grado en Ingeniería Informática - Ceuta}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\hyperlink{indice}{Índice}}
+
+\title{Sistema de Recuperación de Información sobre Wikipedia\\
+\large Práctica 4 - Recuperación de Información}
+\author{Jesús J. Cantero López}
+\date{Curso 2024/25}
+
+% === Configuración de listings para código Python ===
+\lstdefinestyle{mypython}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{orange},
+    commentstyle=\color{gray},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=6pt,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b
+}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\label{indice}
+\clearpage
+
+\section{Introducción}
+
+En esta práctica se desarrolla un \textbf{sistema completo de Recuperación de Información (RI)} que permite buscar en una colección de más de 10 GB de artículos de Wikipedia. El sistema está compuesto por:
+
+\begin{itemize}
+  \item \textbf{Backend}: API REST desarrollada con FastAPI que implementa el pipeline completo de RI
+  \item \textbf{Frontend}: Interfaz web desarrollada con React, TypeScript y TailwindCSS
+  \item \textbf{Corpus}: Artículos de Wikipedia en castellano, catalán y portugués (+10 GB)
+\end{itemize}
+
+El modelo de recuperación utilizado es el \textbf{modelo vectorial con TF-IDF} y \textbf{similitud del coseno}, implementando un índice invertido persistente que permite búsquedas eficientes sobre millones de documentos.
+
+\subsection{Objetivos}
+
+\begin{enumerate}
+  \item Implementar un backend con FastAPI que procese documentos, construya el índice e implemente la búsqueda
+  \item Desarrollar un frontend en React para enviar consultas y visualizar resultados
+  \item Utilizar una colección documental real de más de 10 GB
+  \item Documentar el proceso, problemas encontrados y soluciones aplicadas
+\end{enumerate}
+
+\section{Entorno de trabajo}
+
+\subsection{Backend (Python)}
+Se ha utilizado \textbf{Python 3.11} con Anaconda para gestionar el entorno virtual.
+
+\begin{verbatim}
+conda create -n P4_Final_RI python=3.11
+conda activate P4_Final_RI
+pip install -r backend/requirements.txt
+\end{verbatim}
+
+Las principales librerías utilizadas son:
+\begin{itemize}
+  \item \texttt{fastapi}: Framework web asíncrono para la API REST
+  \item \texttt{uvicorn}: Servidor ASGI para ejecutar FastAPI
+  \item \texttt{nltk}: Procesamiento de lenguaje natural (stopwords, stemming)
+  \item \texttt{pydantic}: Validación de datos y modelos
+\end{itemize}
+
+\subsection{Frontend (JavaScript/TypeScript)}
+Se utilizó \textbf{Node.js 18+} con el siguiente stack:
+\begin{itemize}
+  \item \texttt{Vite}: Bundler moderno (más rápido que create-react-app)
+  \item \texttt{React 18}: Framework de interfaz de usuario
+  \item \texttt{TypeScript}: Tipado estático para JavaScript
+  \item \texttt{TailwindCSS}: Framework CSS utility-first
+  \item \texttt{Lucide React}: Iconos
+\end{itemize}
+
+\subsection{Contenerización}
+El sistema puede ejecutarse con \textbf{Docker} y \textbf{Docker Compose} para facilitar el despliegue:
+\begin{verbatim}
+docker-compose up
+\end{verbatim}
+
+\section{Estructura del proyecto}
+La estructura de carpetas y archivos del proyecto es la siguiente:
+
+\begin{verbatim}
+P4_RI/
+|-- backend/                     (API FastAPI)
+|   |-- main.py                  (punto de entrada de la API)
+|   |-- config.py                (configuración centralizada)
+|   |-- preprocessing.py         (tokenización, stopwords, stemming)
+|   |-- indexing.py              (cálculo TF-IDF, índice invertido)
+|   |-- build_index.py           (indexación de castellano)
+|   |-- build_index_ca.py        (indexación de catalán)
+|   |-- build_index_pt.py        (indexación de portugués)
+|   |-- wikipedia_loader.py      (carga de artículos JSON)
+|   |-- persistent_index.py      (índice persistente en disco)
+|   |-- requirements.txt
+|-- frontend/                    (Interfaz React)
+|   |-- src/
+|   |   |-- App.tsx              (componente principal)
+|   |   |-- api.ts               (cliente API)
+|   |   |-- types.ts             (tipos TypeScript)
+|   |-- package.json
+|-- datos/                       (corpus de Wikipedia)
+|   |-- extracted_es/            (artículos castellano, ~5.8 GB)
+|   |-- extracted_ca/            (artículos catalán, ~1.9 GB)
+|   |-- extracted_pt/            (artículos portugués, ~2.8 GB)
+|   |-- index/                   (índices generados)
+|       |-- es/                  (índice castellano)
+|       |-- ca/                  (índice catalán)
+|       |-- pt/                  (índice portugués)
+|-- doc_practica4/               (documentación)
+|-- Dockerfile                   (imagen Docker)
+|-- docker-compose.yml           (orquestación de servicios)
+\end{verbatim}
+
+\subsection{Descripción de Archivos del Backend}
+
+\begin{itemize}
+  \item \texttt{main.py}: API FastAPI con todos los endpoints de búsqueda y pipeline
+  \item \texttt{preprocessing.py}: Funciones de tokenización, eliminación de stopwords y stemming
+  \item \texttt{indexing.py}: Cálculo de TF, IDF, TF-IDF y construcción del índice invertido
+  \item \texttt{build\_index.py}: Script de indexación batch para castellano
+  \item \texttt{build\_index\_ca.py}: Script de indexación batch para catalán
+  \item \texttt{build\_index\_pt.py}: Script de indexación batch para portugués
+  \item \texttt{wikipedia\_loader.py}: Iterador sobre archivos JSON de WikiExtractor
+  \item \texttt{persistent\_index.py}: Clase para guardar/cargar el índice en disco
+\end{itemize}
+
+\subsection{Ejecución del Sistema}
+
+\subsubsection{Opción rápida: Docker}
+La forma más sencilla de ejecutar el sistema es mediante Docker. Desde el directorio raíz del proyecto:
+
+\begin{verbatim}
+docker compose up
+\end{verbatim}
+
+Esto levantará automáticamente el backend y el frontend, dejando la plataforma lista para usar.
+
+\subsubsection{Opción manual}
+\begin{verbatim}
+# 1. Instalar dependencias del backend
+cd backend
+pip install -r requirements.txt
+
+# 2. Construir índices (por idioma, este paso ya está realizado)
+python build_index.py       # Castellano (~3 horas)
+python build_index_ca.py    # Catalán (~41 min)
+python build_index_pt.py    # Portugués (~48 min)
+
+# 3. Ejecutar backend
+uvicorn main:app --reload
+
+# 4. Instalar y ejecutar frontend
+cd frontend
+npm install
+npm run dev
+\end{verbatim}
+
+\section{Colección Documental}
+
+\subsection{Elección de la Fuente}
+Se eligió \textbf{Wikipedia} como fuente de datos por las siguientes razones:
+
+\begin{itemize}
+  \item \textbf{Variedad temática}: Artículos de ciencia, historia, cultura, geografía, etc.
+  \item \textbf{Experiencia realista}: Simula un buscador real que los usuarios conocen
+  \item \textbf{Metadatos ricos}: Cada artículo incluye título, URL y contenido estructurado
+  \item \textbf{Licencia libre}: CC BY-SA permite uso académico
+  \item \textbf{Descarga sencilla}: Dumps oficiales disponibles en Wikimedia
+\end{itemize}
+
+\subsection{Obtención de los Datos}
+Los datos se obtuvieron de los dumps oficiales de Wikimedia:
+
+\begin{itemize}
+  \item Castellano: \url{https://dumps.wikimedia.org/eswiki/latest/}
+  \item Catalán: \url{https://dumps.wikimedia.org/cawiki/latest/}
+  \item Portugués: \url{https://dumps.wikimedia.org/ptwiki/latest/}
+\end{itemize}
+
+La extracción se realizó con \textbf{WikiExtractor}, que convierte el XML de Wikipedia a archivos JSON con una línea por artículo:
+
+\begin{verbatim}
+{"id": "12", "url": "https://es.wikipedia.org/wiki/...", 
+ "title": "Título", "text": "Contenido del artículo..."}
+\end{verbatim}
+
+\subsection{Estadísticas del Corpus}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Idioma} & \textbf{Artículos} & \textbf{Términos únicos} & \textbf{Tiempo} \\
+\hline
+Castellano & 1,924,610 & 2,657,342 & 188.6 min \\
+Catalán & 743,723 & 1,574,860 & 41.1 min \\
+Portugués & 1,057,354 & 1,603,916 & 47.6 min \\
+\hline
+\textbf{Total} & \textbf{3,725,687} & - & \textbf{~4.6 horas} \\
+\hline
+\end{tabular}
+\caption{Estadísticas del corpus indexado.}
+\end{table}
+
+El tamaño total de los datos extraídos es de \textbf{10.5 GB}, superando el requisito mínimo de 10 GB.
+
+\section{Pipeline de Preprocesamiento}
+
+El preprocesamiento de documentos y consultas sigue el siguiente pipeline:
+
+\subsection{Análisis Léxico}
+Normalización del texto: conversión a minúsculas y limpieza de caracteres especiales.
+
+\begin{lstlisting}[style=mypython,caption={Normalización de texto}]
+def normalize_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', ' ', text)
+    return text
+\end{lstlisting}
+
+\subsection{Tokenización}
+Extracción de palabras mediante expresiones regulares:
+
+\begin{lstlisting}[style=mypython,caption={Tokenización}]
+def tokenize_text(text: str) -> list[str]:
+    text = normalize_text(text)
+    tokens = re.findall(r'\w+', text)
+    return tokens
+\end{lstlisting}
+
+\subsection{Eliminación de Stopwords}
+Filtrado de palabras vacías usando NLTK. Se soportan tres idiomas:
+
+\begin{lstlisting}[style=mypython,caption={Eliminación de stopwords}]
+def remove_stopwords_tokens(tokens, language="spanish"):
+    stop_words = set(stopwords.words(language))
+    return [t for t in tokens if t not in stop_words]
+\end{lstlisting}
+
+\subsection{Stemming}
+Reducción de palabras a su raíz usando el algoritmo Snowball:
+
+\begin{lstlisting}[style=mypython,caption={Stemming con Snowball}]
+def lemmatize_or_stem_tokens(tokens, language="spanish"):
+    stemmer = SnowballStemmer(language)
+    return [stemmer.stem(t) for t in tokens]
+\end{lstlisting}
+
+\section{Modelo de Recuperación}
+
+\subsection{Modelo Vectorial TF-IDF}
+El sistema utiliza el \textbf{modelo vectorial} con ponderación \textbf{TF-IDF} (Term Frequency - Inverse Document Frequency). Cada documento y consulta se representa como un vector en un espacio de términos.
+
+\subsubsection{Cálculo de TF (Term Frequency)}
+La frecuencia normalizada del término $t$ en el documento $d$:
+
+\begin{equation}
+\text{TF}(t,d) = \frac{f(t,d)}{|d|}
+\end{equation}
+
+Donde $f(t,d)$ es el número de ocurrencias del término y $|d|$ es el número total de tokens en el documento.
+
+\subsubsection{Cálculo de IDF (Inverse Document Frequency)}
+Mide la importancia del término en la colección. Se usa IDF suavizado:
+
+\begin{equation}
+\text{IDF}(t) = \log\frac{N + 1}{df_t + 1} + 1
+\end{equation}
+
+Donde $N$ es el número total de documentos y $df_t$ es el número de documentos que contienen el término.
+
+\subsubsection{Peso TF-IDF}
+\begin{equation}
+\text{TF-IDF}(t,d) = \text{TF}(t,d) \times \text{IDF}(t)
+\end{equation}
+
+\begin{lstlisting}[style=mypython,caption={Cálculo de TF-IDF en el índice}]
+# Calcular TF
+tf = count / n_tokens
+
+# Calcular IDF suavizado
+idf[term] = log((doc_count + 1) / (df_t + 1)) + 1.0
+
+# Peso TF-IDF
+tfidf = tf * idf[term]
+\end{lstlisting}
+
+\subsection{Similitud del Coseno}
+Para calcular la relevancia de un documento respecto a una consulta, se utiliza la \textbf{similitud del coseno}:
+
+\begin{equation}
+\text{sim}(q,d) = \frac{\vec{q} \cdot \vec{d}}{||\vec{q}|| \times ||\vec{d}||} = \frac{\sum_{i=1}^{n} q_i \times d_i}{\sqrt{\sum_{i=1}^{n} q_i^2} \times \sqrt{\sum_{i=1}^{n} d_i^2}}
+\end{equation}
+
+Las normas de los documentos se precalculan durante la indexación para acelerar las búsquedas.
+
+\begin{lstlisting}[style=mypython,caption={Cálculo de similitud coseno}]
+def search(self, query: str, top_k: int = 10):
+    # Preprocesar consulta
+    query_tokens = preprocess_document(query, self.language)
+    
+    # Calcular vector TF-IDF de la consulta
+    query_vec = {}
+    for term, count in Counter(query_tokens).items():
+        if term in self.idf:
+            tf = count / len(query_tokens)
+            query_vec[term] = tf * self.idf[term]
+    
+    # Calcular similitud con cada documento
+    scores = defaultdict(float)
+    query_norm = sqrt(sum(w*w for w in query_vec.values()))
+    
+    for term, weight in query_vec.items():
+        if term in self.inverted_index:
+            for doc_id, doc_weight in self.inverted_index[term]:
+                scores[doc_id] += weight * doc_weight
+    
+    # Normalizar por normas de documentos
+    for doc_id in scores:
+        scores[doc_id] /= (query_norm * self.doc_norms[doc_id])
+    
+    # Ordenar por score descendente
+    return sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
+\end{lstlisting}
+
+\subsection{Índice Invertido}
+El índice invertido es la estructura de datos principal que permite búsquedas eficientes. Para cada término, almacena una lista de documentos que lo contienen junto con su peso TF-IDF:
+
+\begin{verbatim}
+{
+  "madrid": [("doc_123", 0.045), ("doc_456", 0.032), ...],
+  "españa": [("doc_789", 0.067), ("doc_123", 0.041), ...],
+  ...
+}
+\end{verbatim}
+
+Los postings están ordenados por peso descendente para optimizar las búsquedas.
+
+\section{API REST (Backend)}
+
+\subsection{Endpoints Implementados}
+La API FastAPI expone los siguientes endpoints:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Método} & \textbf{Endpoint} & \textbf{Descripción} \\
+\hline
+GET & \texttt{/} & Información de la API \\
+GET & \texttt{/stats} & Estadísticas del índice cargado \\
+GET & \verb|/search?q={query}| & Búsqueda de documentos \\
+GET & \verb|/document/{id}| & Obtener documento por ID \\
+POST & \texttt{/lexical\_analysis} & Normalización de texto \\
+POST & \texttt{/tokenize} & Tokenización \\
+POST & \texttt{/remove\_stopwords} & Eliminación de stopwords \\
+POST & \texttt{/lemmatize} & Stemming/Lematización \\
+POST & \texttt{/analyze\_query} & Pipeline completo de análisis \\
+\hline
+\end{tabular}
+\caption{Endpoints de la API REST.}
+\end{table}
+
+\subsection{Ejemplo de Respuesta de Búsqueda}
+\begin{verbatim}
+GET /search?q=historia+de+españa&lang=es&top_k=5
+
+{
+  "query": "historia de españa",
+  "language": "es",
+  "results": [
+    {
+      "id": "12345",
+      "title": "Historia de España",
+      "url": "https://es.wikipedia.org/wiki/Historia_de_España",
+      "score": 0.847,
+      "snippet": "La historia de España abarca el período..."
+    },
+    ...
+  ],
+  "total_results": 5,
+  "search_time_ms": 234
+}
+\end{verbatim}
+
+\section{Interfaz de Usuario (Frontend)}
+
+El frontend está desarrollado con \textbf{React} y \textbf{TypeScript}, utilizando \textbf{TailwindCSS} para los estilos.
+
+\subsection{Características}
+\begin{itemize}
+  \item \textbf{Selector de idioma}: Permite elegir entre castellano, catalán y portugués
+  \item \textbf{Barra de búsqueda}: Campo de texto con botón de búsqueda
+  \item \textbf{Indicador de carga}: Spinner mientras se realiza la búsqueda
+  \item \textbf{Lista de resultados}: Muestra los 20 primeros resultados relevantes con título, score, snippet y enlace a Wikipedia
+  \item \textbf{Estadísticas dinámicas}: Los indicadores de número de documentos, vocabulario y estado del índice se actualizan automáticamente después de cada consulta en cada idioma
+  \item \textbf{Gestión de errores}: Mensajes cuando el backend no está disponible
+\end{itemize}
+
+\subsection{Capturas de Pantalla}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/01_interfaz_principal.png}
+\caption{Interfaz principal del buscador WikiSearch.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/02_busqueda_castellano.png}
+\caption{Primera búsqueda en castellano (carga inicial del índice).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/02-1_busqueda_castellano_2.png}
+\caption{Segunda búsqueda en castellano con índice ya cargado (313.27 ms).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/03_busqueda_catalan.png}
+\caption{Primera búsqueda en catalán (carga inicial del índice).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/03-1_busqueda_catalan_2.png}
+\caption{Segunda búsqueda en catalán con índice ya cargado (22.53 ms).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/04_busqueda_portugues.png}
+\caption{Primera búsqueda en portugués (carga inicial del índice).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{capturas/04-1_busqueda_portugues_2.png}
+\caption{Segunda búsqueda en portugués con índice ya cargado (16.46 ms).}
+\end{figure}
+
+Las figuras anteriores demuestran la diferencia de rendimiento entre la primera búsqueda (que incluye la carga del índice desde disco) y las búsquedas posteriores (que utilizan el índice ya cargado en memoria). Los tiempos de respuesta se reducen drásticamente: de varios segundos en la carga inicial a apenas \textbf{313 ms} en castellano, \textbf{22 ms} en catalán y \textbf{16 ms} en portugués. Esta mejora evidencia la eficiencia del índice invertido en memoria para búsquedas en tiempo real.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/05_consola_backend.png}
+\caption{Consola del backend FastAPI en ejecución.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/06_consola_frontend.png}
+\caption{Consola del frontend Vite/React en ejecución.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/07_docker_consola.png}
+\caption{Backend y Frontend ejecutado en Docker.}
+\end{figure}
+
+\section{Problemas Encontrados y Soluciones}
+
+Durante el desarrollo del sistema se encontraron varios problemas técnicos que requirieron soluciones específicas.
+
+\subsection{Error de Multiprocessing en Windows}
+\textbf{Problema}: WikiExtractor fallaba con el error \texttt{ValueError: cannot find context for 'fork'}.
+
+\textbf{Causa}: WikiExtractor usa \texttt{fork} para multiprocessing, que solo existe en Linux/Mac.
+
+\textbf{Solución}: Usar WSL (Windows Subsystem for Linux) para la extracción con 4 procesos paralelos.
+
+\subsection{MemoryError durante Indexación}
+\textbf{Problema}: El script de indexación fallaba con \texttt{MemoryError} al procesar más de 3 millones de documentos.
+
+\textbf{Causa}: El índice invertido completo no cabía en RAM (~20-40 GB necesarios).
+
+\textbf{Solución}: Dividir la indexación en scripts separados por idioma, cada uno guardando en su propio directorio (\texttt{index/es/}, \texttt{index/ca/}, \texttt{index/pt/}).
+
+\subsection{Alto Consumo de RAM al Cargar Índices}
+\textbf{Problema}: Cargar el índice de castellano consume ~18 GB de RAM en pico.
+
+\textbf{Causa}: El archivo del índice invertido (.pkl) contiene ~2.6 millones de términos con millones de postings.
+
+\textbf{Solución}: Los índices se cargan bajo demanda (no al iniciar el servidor). Para Docker, se recomienda usar los índices de catalán o portugués, que son más ligeros.
+
+\subsection{Mezcla de Idiomas en Resultados}
+\textbf{Problema}: Búsquedas en castellano devolvían resultados en portugués y catalán.
+
+\textbf{Causa}: El índice original fue construido antes de separar los scripts por idioma, mezclando documentos.
+
+\textbf{Solución}: Reconstruir el índice de castellano usando solo \texttt{extracted\_es}.
+
+\clearpage
+
+\section{Conclusiones}
+
+\subsection{Logros del Proyecto}
+Se ha desarrollado un sistema completo de Recuperación de Información que cumple con todos los requisitos de la práctica:
+
+\begin{itemize}
+  \item \textbf{Backend funcional}: API REST con FastAPI que implementa el pipeline completo de RI
+  \item \textbf{Frontend moderno}: Interfaz web con React, TypeScript y TailwindCSS
+  \item \textbf{Corpus significativo}: Más de 10 GB de artículos de Wikipedia en 3 idiomas
+  \item \textbf{Índice eficiente}: Índice invertido con TF-IDF y similitud coseno
+  \item \textbf{Despliegue con Docker}: Sistema containerizado para fácil despliegue
+\end{itemize}
+
+\subsection{Estadísticas Finales}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+Total de artículos indexados & 3,725,687 \\
+Tamaño del corpus & 10.5 GB \\
+Tiempo total de indexación & ~4.6 horas \\
+Idiomas soportados & 3 (ES, CA, PT) \\
+Endpoints de la API & 9 \\
+\hline
+\end{tabular}
+\caption{Estadísticas finales del sistema.}
+\end{table}
+
+\subsection{Lecciones Aprendidas}
+
+\begin{itemize}
+  \item \textbf{Escalabilidad}: Trabajar con millones de documentos requiere estrategias de memoria cuidadosas
+  \item \textbf{Separación por idiomas}: Mantener índices separados simplifica el mantenimiento y reduce el consumo de RAM
+  \item \textbf{WSL para Windows}: Herramientas de Linux como WikiExtractor funcionan mejor en WSL que en Windows nativo
+  \item \textbf{Docker}: Facilita el despliegue pero tiene limitaciones de memoria que afectan a índices grandes
+\end{itemize}
+
+\section{Referencias}
+
+\begin{itemize}
+  \item Manning, C. D., Raghavan, P., \& Schütze, H. (2008). \textit{Introduction to Information Retrieval}. Cambridge University Press.
+  \item FastAPI Documentation: \url{https://fastapi.tiangolo.com/}
+  \item React Documentation: \url{https://react.dev/}
+  \item Wikimedia Downloads: \url{https://dumps.wikimedia.org/}
+  \item NLTK Documentation: \url{https://www.nltk.org/}
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.env
+
+# Anaconda
+.conda/
+
+# NLTK data
+nltk_data/
+
+# Datos de Wikipedia (demasiado grandes para Git)
+datos/*.xml.bz2
+datos/extracted*/
+datos/index/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX auxiliares
+doc_practica4/*.aux
+doc_practica4/*.log
+doc_practica4/*.out
+doc_practica4/*.toc
+doc_practica4/*.fls
+doc_practica4/*.fdb_latexmk
+doc_practica4/*.synctex.gz
+
+# Logs
+*.log

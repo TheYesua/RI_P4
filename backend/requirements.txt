@@ -1,0 +1,12 @@
+# Backend API
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+
+# Procesamiento de lenguaje natural
+nltk>=3.8.0
+
+# Utilidades para descarga de datos (opcional, solo para datos/)
+requests>=2.28.0
+tqdm>=4.64.0
+wikiextractor>=3.0.6
