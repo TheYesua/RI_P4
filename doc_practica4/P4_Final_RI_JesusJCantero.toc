@@ -1,0 +1,44 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Objetivos}{3}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Entorno de trabajo}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Backend (Python)}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Frontend (JavaScript/TypeScript)}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Contenerización}{4}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Estructura del proyecto}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Descripción de Archivos del Backend}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Ejecución del Sistema}{5}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Opción rápida: Docker}{5}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Opción manual}{5}{subsubsection.3.2.2}%
+\contentsline {section}{\numberline {4}Colección Documental}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Elección de la Fuente}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Obtención de los Datos}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Estadísticas del Corpus}{6}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Pipeline de Preprocesamiento}{6}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Análisis Léxico}{6}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Tokenización}{7}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Eliminación de Stopwords}{7}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Stemming}{7}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Modelo de Recuperación}{7}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Modelo Vectorial TF-IDF}{7}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Cálculo de TF (Term Frequency)}{7}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Cálculo de IDF (Inverse Document Frequency)}{7}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}Peso TF-IDF}{8}{subsubsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.2}Similitud del Coseno}{8}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Índice Invertido}{9}{subsection.6.3}%
+\contentsline {section}{\numberline {7}API REST (Backend)}{9}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Endpoints Implementados}{9}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Ejemplo de Respuesta de Búsqueda}{9}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Interfaz de Usuario (Frontend)}{10}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Características}{10}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Capturas de Pantalla}{10}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Problemas Encontrados y Soluciones}{15}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Error de Multiprocessing en Windows}{15}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}MemoryError durante Indexación}{15}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Alto Consumo de RAM al Cargar Índices}{15}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Mezcla de Idiomas en Resultados}{15}{subsection.9.4}%
+\contentsline {section}{\numberline {10}Conclusiones}{16}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Logros del Proyecto}{16}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Estadísticas Finales}{16}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Lecciones Aprendidas}{16}{subsection.10.3}%
+\contentsline {section}{\numberline {11}Referencias}{16}{section.11}%

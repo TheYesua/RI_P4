@@ -35,13 +35,13 @@ frontend/.vite/
 Thumbs.db
 
 # LaTeX auxiliares
-doc_practica4/*.aux
-doc_practica4/*.log
-doc_practica4/*.out
-doc_practica4/*.toc
-doc_practica4/*.fls
-doc_practica4/*.fdb_latexmk
-doc_practica4/*.synctex.gz
+#doc_practica4/*.aux
+#doc_practica4/*.log
+#doc_practica4/*.out
+#doc_practica4/*.toc
+#doc_practica4/*.fls
+#doc_practica4/*.fdb_latexmk
+#doc_practica4/*.synctex.gz
 
 # Logs
 *.log
