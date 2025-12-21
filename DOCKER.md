@@ -63,6 +63,8 @@ docker-compose up
 - Backend: http://localhost:8000
 - Frontend: http://localhost:5173
 
+**Nota sobre RAM**: Docker tiene limite de 16GB por defecto. El indice de ES requiere ~18GB en pico. Para ES, usar ejecucion local o aumentar RAM en Docker Desktop > Settings > Resources.
+
 ### 4. Detener servicios
 
 ```bash

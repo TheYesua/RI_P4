@@ -14,7 +14,8 @@ BATCH_SIZE = 1000  # Documentos por lote durante indexación
 MAX_DOCS = None  # None = todos los documentos, o un número para limitar (útil para pruebas)
 
 # Configuracion de busqueda
-DEFAULT_TOP_K = 20
+DEFAULT_TOP_K = 50  # Resultados por defecto (paginados en frontend)
+MAX_TOP_K = 100     # Maximo permitido
 SNIPPET_LENGTH = 300
 
 # Idiomas soportados

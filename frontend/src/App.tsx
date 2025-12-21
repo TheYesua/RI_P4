@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Search, BookOpen, Clock, Database, ExternalLink, AlertCircle, Loader2, Globe } from 'lucide-react';
+import { Search, BookOpen, Clock, Database, ExternalLink, AlertCircle, Loader2, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import { search, getStats, checkHealth } from './api';
 import type { SearchResult, IndexStats } from './types';
+
+// Configuración de paginación
+const RESULTS_PER_PAGE = 10;
+const TOTAL_RESULTS_TO_FETCH = 50;
 
 // Nombres de idiomas para mostrar
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -21,6 +25,7 @@ function App() {
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [selectedLang, setSelectedLang] = useState<string>('es');
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Verificar estado del backend al cargar
   useEffect(() => {
@@ -46,6 +51,25 @@ function App() {
     checkBackend();
   }, []);
 
+  // Función para reiniciar todo el estado
+  const handleReset = async () => {
+    setQuery('');
+    setResults([]);
+    setSearchTime(null);
+    setTotalResults(0);
+    setError(null);
+    setCurrentPage(1);
+    // Reiniciar stats a valores iniciales (sin índice cargado)
+    setStats({
+      total_documents: 0,
+      vocabulary_size: 0,
+      index_loaded: false,
+      current_language: null,
+      available_languages: availableLanguages,
+      build_time_seconds: null,
+    });
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -54,10 +78,11 @@ function App() {
     setError(null);
 
     try {
-      const response = await search(query.trim(), selectedLang);
+      const response = await search(query.trim(), selectedLang, TOTAL_RESULTS_TO_FETCH);
       setResults(response.results);
       setSearchTime(response.processing_time_ms);
       setTotalResults(response.total_results);
+      setCurrentPage(1); // Reiniciar a página 1 en nueva búsqueda
       // Actualizar stats despues de la busqueda (el indice ya esta cargado)
       const updatedStats = await getStats();
       setStats(updatedStats);
@@ -69,18 +94,28 @@ function App() {
     }
   };
 
+  // Calcular resultados paginados
+  const totalPages = Math.ceil(results.length / RESULTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * RESULTS_PER_PAGE;
+  const endIndex = startIndex + RESULTS_PER_PAGE;
+  const paginatedResults = results.slice(startIndex, endIndex);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            title="Reiniciar búsqueda"
+          >
             <BookOpen className="w-10 h-10 text-blue-600" />
-            <div>
+            <div className="text-left">
               <h1 className="text-2xl font-bold text-gray-900">WikiSearch</h1>
               <p className="text-sm text-gray-500">Buscador de Wikipedia multilingüe</p>
             </div>
-          </div>
+          </button>
         </div>
       </header>
 
@@ -195,7 +230,7 @@ function App() {
 
         {/* Resultados */}
         <div className="space-y-4">
-          {results.map((result, index) => (
+          {paginatedResults.map((result, index) => (
             <article
               key={result.doc_id}
               className="bg-white p-5 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
@@ -203,7 +238,7 @@ function App() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-gray-400">#{index + 1}</span>
+                    <span className="text-xs font-medium text-gray-400">#{startIndex + index + 1}</span>
                     <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                       Score: {result.score.toFixed(4)}
                     </span>
@@ -230,6 +265,43 @@ function App() {
             </article>
           ))}
         </div>
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Página anterior"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                  currentPage === page
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white border hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Página siguiente"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
 
         {/* Sin resultados */}
         {results.length === 0 && searchTime !== null && !loading && (

@@ -31,14 +31,17 @@
 \contentsline {subsection}{\numberline {7.2}Ejemplo de Respuesta de Búsqueda}{9}{subsection.7.2}%
 \contentsline {section}{\numberline {8}Interfaz de Usuario (Frontend)}{10}{section.8}%
 \contentsline {subsection}{\numberline {8.1}Características}{10}{subsection.8.1}%
-\contentsline {subsection}{\numberline {8.2}Capturas de Pantalla}{10}{subsection.8.2}%
-\contentsline {section}{\numberline {9}Problemas Encontrados y Soluciones}{15}{section.9}%
-\contentsline {subsection}{\numberline {9.1}Error de Multiprocessing en Windows}{15}{subsection.9.1}%
-\contentsline {subsection}{\numberline {9.2}MemoryError durante Indexación}{15}{subsection.9.2}%
-\contentsline {subsection}{\numberline {9.3}Alto Consumo de RAM al Cargar Índices}{15}{subsection.9.3}%
-\contentsline {subsection}{\numberline {9.4}Mezcla de Idiomas en Resultados}{15}{subsection.9.4}%
-\contentsline {section}{\numberline {10}Conclusiones}{16}{section.10}%
-\contentsline {subsection}{\numberline {10.1}Logros del Proyecto}{16}{subsection.10.1}%
-\contentsline {subsection}{\numberline {10.2}Estadísticas Finales}{16}{subsection.10.2}%
-\contentsline {subsection}{\numberline {10.3}Lecciones Aprendidas}{16}{subsection.10.3}%
-\contentsline {section}{\numberline {11}Referencias}{16}{section.11}%
+\contentsline {subsection}{\numberline {8.2}Nuevas Funcionalidades}{10}{subsection.8.2}%
+\contentsline {subsubsection}{\numberline {8.2.1}Sistema de Paginación}{10}{subsubsection.8.2.1}%
+\contentsline {subsubsection}{\numberline {8.2.2}Botón de Reinicio}{10}{subsubsection.8.2.2}%
+\contentsline {subsection}{\numberline {8.3}Capturas de Pantalla}{11}{subsection.8.3}%
+\contentsline {section}{\numberline {9}Problemas Encontrados y Soluciones}{16}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Error de Multiprocessing en Windows}{16}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}MemoryError durante Indexación}{17}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Alto Consumo de RAM al Cargar Índices}{17}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Mezcla de Idiomas en Resultados}{17}{subsection.9.4}%
+\contentsline {section}{\numberline {10}Conclusiones}{18}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Logros del Proyecto}{18}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Estadísticas Finales}{18}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Lecciones Aprendidas}{18}{subsection.10.3}%
+\contentsline {section}{\numberline {11}Referencias}{18}{section.11}%

@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from config import DEFAULT_TOP_K, SNIPPET_LENGTH, SUPPORTED_LANGUAGES, DEFAULT_INDEX_LANG, LANGUAGE_MAP
+from config import DEFAULT_TOP_K, MAX_TOP_K, SNIPPET_LENGTH, SUPPORTED_LANGUAGES, DEFAULT_INDEX_LANG, LANGUAGE_MAP
 from preprocessing import (
     normalize_text,
     tokenize_text,
@@ -162,7 +162,7 @@ async def get_stats():
 async def search(
     q: str = Query(..., description="Consulta de busqueda"),
     lang: str = Query(DEFAULT_INDEX_LANG, description="Idioma del indice (es, ca, pt)"),
-    top_k: int = Query(DEFAULT_TOP_K, ge=1, le=100, description="Numero de resultados"),
+    top_k: int = Query(DEFAULT_TOP_K, ge=1, le=MAX_TOP_K, description="Numero de resultados"),
 ):
     """
     Busca documentos relevantes para la consulta.

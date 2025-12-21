@@ -425,9 +425,33 @@ El frontend está desarrollado con \textbf{React} y \textbf{TypeScript}, utiliza
   \item \textbf{Selector de idioma}: Permite elegir entre castellano, catalán y portugués
   \item \textbf{Barra de búsqueda}: Campo de texto con botón de búsqueda
   \item \textbf{Indicador de carga}: Spinner mientras se realiza la búsqueda
-  \item \textbf{Lista de resultados}: Muestra los 20 primeros resultados relevantes con título, score, snippet y enlace a Wikipedia
+  \item \textbf{Lista de resultados}: Muestra los 50 primeros resultados relevantes con título, score, snippet y enlace a Wikipedia
+  \item \textbf{Paginación}: Los resultados se dividen en 5 páginas de 10 resultados cada una, con controles de navegación
   \item \textbf{Estadísticas dinámicas}: Los indicadores de número de documentos, vocabulario y estado del índice se actualizan automáticamente después de cada consulta en cada idioma
+  \item \textbf{Botón de reinicio}: Al hacer clic en el logo/título ``WikiSearch'' se reinicia la interfaz, limpiando resultados y estadísticas
   \item \textbf{Gestión de errores}: Mensajes cuando el backend no está disponible
+\end{itemize}
+
+\subsection{Nuevas Funcionalidades}
+
+\subsubsection{Sistema de Paginación}
+Se ha implementado un sistema de paginación que divide los resultados en páginas de 10 elementos:
+
+\begin{itemize}
+  \item El backend devuelve hasta 50 resultados por búsqueda
+  \item El frontend divide estos resultados en 5 páginas de 10 cada una
+  \item Controles de navegación con flechas y números de página
+  \item El número de resultado se mantiene consistente (ej: página 1 muestra resultados 1-10)
+\end{itemize}
+
+\subsubsection{Botón de Reinicio}
+El logo y título ``WikiSearch'' en la cabecera funcionan como botón de reinicio:
+
+\begin{itemize}
+  \item Limpia la consulta actual y todos los resultados
+  \item Reinicia los contadores de documentos, vocabulario y estado del índice a cero
+  \item Devuelve la interfaz a su estado inicial, como si fuera una nueva sesión
+  \item Útil para comenzar una nueva búsqueda desde cero
 \end{itemize}
 
 \subsection{Capturas de Pantalla}
@@ -492,6 +516,18 @@ Las figuras anteriores demuestran la diferencia de rendimiento entre la primera 
 \centering
 \includegraphics[width=0.9\textwidth]{capturas/07_docker_consola.png}
 \caption{Backend y Frontend ejecutado en Docker.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/08_paginacion.png}
+\caption{Sistema de paginación mostrando página 1 de 5 (resultados 1-10).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{capturas/09_reinicio.png}
+\caption{Logo con la opción de reiniciar la interfaz.}
 \end{figure}
 
 \section{Problemas Encontrados y Soluciones}
